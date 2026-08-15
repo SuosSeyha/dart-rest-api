@@ -1,32 +1,57 @@
-import 'package:dart_api/database/database.dart';
-import 'package:dart_api/repositories/user_repository.dart';
-import 'package:dart_api/routes/user_routes.dart';
+import 'dart:io';
+
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
+import '../lib/database/database.dart';
+import '../lib/repositories/user_repository.dart';
+import '../lib/routes/user_routes.dart';
+
 Future<void> main() async {
+  print('');
   print('======================================');
   print('🚀 Starting Dart REST API');
   print('======================================');
+  print('');
 
-  // Connect PostgreSQL
+  // ============================================================
+  // DATABASE
+  // ============================================================
 
-  await Database.instance.connect();
+  try {
+    await Database.instance.connect();
+  } catch (e) {
+    print('❌ PostgreSQL connection failed');
+    print(e);
 
-  // Create repository
+    exit(1);
+  }
+
+  // ============================================================
+  // REPOSITORY
+  // ============================================================
 
   final userRepository = UserRepository();
 
-  // Create routes
+  // ============================================================
+  // ROUTES
+  // ============================================================
 
   final userRoutes = UserRoutes(
     userRepository,
   );
 
-  // Router
+  // ============================================================
+  // HANDLER
+  // ============================================================
 
   final handler = Pipeline()
-      .addMiddleware(logRequests())
+      .addMiddleware(
+        logRequests(),
+      )
+      .addMiddleware(
+        _corsMiddleware(),
+      )
       .addHandler(
         (Request request) async {
           final method = request.method;
@@ -34,49 +59,108 @@ Future<void> main() async {
 
           print('➡️ $method /$path');
 
-          // ==============================================
-          // GET /
-          // ==============================================
+          // ======================================================
+          // CORS PREFLIGHT
+          // ======================================================
+
+          if (method == 'OPTIONS') {
+            return Response.ok('');
+          }
+
+          // ======================================================
+          // API HEALTH CHECK
+          // ======================================================
 
           if (method == 'GET' && path.isEmpty) {
             return Response.ok(
               'Dart REST API is running 🚀',
+              headers: {
+                'content-type': 'text/plain',
+              },
             );
           }
 
-          // ==============================================
+          // ======================================================
+          // SWAGGER UI
+          // GET /docs
+          // ======================================================
+
+          if (method == 'GET' && path == 'docs') {
+            return _swaggerUi();
+          }
+
+          // ======================================================
+          // OPENAPI YAML
+          // GET /docs/openapi.yaml
+          // ======================================================
+
+          if (
+            method == 'GET' &&
+            path == 'docs/openapi.yaml'
+          ) {
+            return _openApiYaml();
+          }
+
+          // ======================================================
+          // GET ALL USERS
           // GET /api/users
-          // ==============================================
+          // ======================================================
 
-          if (method == 'GET' && path == 'api/users') {
-            return userRoutes.getUsers(request);
+          if (
+            method == 'GET' &&
+            path == 'api/users'
+          ) {
+            return userRoutes.getUsers(
+              request,
+            );
           }
 
-          // ==============================================
+          // ======================================================
+          // CREATE USER
           // POST /api/users
-          // ==============================================
+          // ======================================================
 
-          if (method == 'POST' && path == 'api/users') {
-            return userRoutes.createUser(request);
+          if (
+            method == 'POST' &&
+            path == 'api/users'
+          ) {
+            return userRoutes.createUser(
+              request,
+            );
           }
 
-          // ==============================================
-          // /api/users/:id
-          // ==============================================
+          // ======================================================
+          // USER ID ROUTES
+          // ======================================================
 
           if (path.startsWith('api/users/')) {
-            final idString = path.split('/').last;
+            final parts = path.split('/');
 
-            final id = int.tryParse(idString);
+            if (parts.length != 3) {
+              return Response.notFound(
+                'Route not found',
+              );
+            }
+
+            final idString = parts[2];
+
+            final id = int.tryParse(
+              idString,
+            );
 
             if (id == null) {
               return Response(
                 400,
                 body: 'Invalid user ID',
+                headers: {
+                  'content-type': 'text/plain',
+                },
               );
             }
 
-            // GET /api/users/:id
+            // ====================================================
+            // GET USER
+            // ====================================================
 
             if (method == 'GET') {
               return userRoutes.getUser(
@@ -85,7 +169,9 @@ Future<void> main() async {
               );
             }
 
-            // PUT /api/users/:id
+            // ====================================================
+            // UPDATE USER
+            // ====================================================
 
             if (method == 'PUT') {
               return userRoutes.updateUser(
@@ -94,7 +180,9 @@ Future<void> main() async {
               );
             }
 
-            // DELETE /api/users/:id
+            // ====================================================
+            // DELETE USER
+            // ====================================================
 
             if (method == 'DELETE') {
               return userRoutes.deleteUser(
@@ -104,9 +192,9 @@ Future<void> main() async {
             }
           }
 
-          // ==============================================
+          // ======================================================
           // 404
-          // ==============================================
+          // ======================================================
 
           return Response.notFound(
             'Route not found',
@@ -114,7 +202,9 @@ Future<void> main() async {
         },
       );
 
-  // Start server
+  // ============================================================
+  // START SERVER
+  // ============================================================
 
   final server = await shelf_io.serve(
     handler,
@@ -126,8 +216,96 @@ Future<void> main() async {
   print('======================================');
   print('✅ API SERVER RUNNING');
   print('======================================');
+
   print(
-    '🌐 http://${server.address.host}:${server.port}',
+    '🌐 API: http://localhost:${server.port}',
   );
+
+  print(
+    '📚 Swagger: http://localhost:${server.port}/docs',
+  );
+
+  print(
+    '📄 OpenAPI: http://localhost:${server.port}/docs/openapi.yaml',
+  );
+
   print('======================================');
+  print('');
+}
+
+// ================================================================
+// SWAGGER UI
+// ================================================================
+
+Future<Response> _swaggerUi() async {
+  final file = File(
+    'web/swagger/index.html',
+  );
+
+  if (!await file.exists()) {
+    return Response.notFound(
+      'Swagger UI file not found',
+    );
+  }
+
+  final content = await file.readAsString();
+
+  return Response.ok(
+    content,
+    headers: {
+      'content-type':
+          'text/html; charset=utf-8',
+    },
+  );
+}
+
+// ================================================================
+// OPENAPI YAML
+// ================================================================
+
+Future<Response> _openApiYaml() async {
+  final file = File(
+    'docs/openapi.yaml',
+  );
+
+  if (!await file.exists()) {
+    return Response.notFound(
+      'OpenAPI specification not found',
+    );
+  }
+
+  final content = await file.readAsString();
+
+  return Response.ok(
+    content,
+    headers: {
+      'content-type':
+          'application/yaml; charset=utf-8',
+    },
+  );
+}
+
+// ================================================================
+// CORS
+// ================================================================
+
+Middleware _corsMiddleware() {
+  return (Handler handler) {
+    return (Request request) async {
+      final response = await handler(
+        request,
+      );
+
+      return response.change(
+        headers: {
+          ...response.headers,
+          'access-control-allow-origin': '*',
+          'access-control-allow-methods':
+              'GET, POST, PUT, DELETE, OPTIONS',
+          'access-control-allow-headers':
+              'Origin, Content-Type, Accept, Authorization',
+        },
+      );
+    };
+  };
 }
