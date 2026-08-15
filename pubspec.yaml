@@ -8,6 +8,7 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  openapi_spec: ^0.15.0
   path: ^1.9.0
   postgres: ^3.5.12
   shelf: ^1.4.2

@@ -21,11 +21,12 @@ The API can be consumed by Flutter, web applications, mobile applications, or an
 * [Database Configuration](#database-configuration)
 * [Running the API](#running-the-api)
 * [REST API Endpoints](#rest-api-endpoints)
-* [Create User](#create-user)
-* [Get All Users](#get-all-users)
-* [Get Single User](#get-single-user)
-* [Update User](#update-user)
-* [Delete User](#delete-user)
+  * [Create User](#4-create-user)
+  * [Get All Users](#2-get-all-users)
+  * [Get Single User](#3-get-one-user)
+  * [Update User](#5-update-user)
+  * [Delete User](#6-delete-user)
+* [Swagger UI / API Documentation](#swagger-ui--api-documentation)
 * [Checking Database Data](#checking-database-data)
 * [Testing with cURL](#testing-with-curl)
 * [Testing with Flutter](#testing-with-flutter)
@@ -33,7 +34,7 @@ The API can be consumed by Flutter, web applications, mobile applications, or an
 * [API Response Format](#api-response-format)
 * [Application Flow](#application-flow)
 * [Security](#security)
-* [Future Improvements](#future-improvements)
+* [Future Features](#future-features)
 * [Roadmap](#roadmap)
 
 ---
@@ -67,12 +68,7 @@ Delete
 The application follows this architecture:
 
 ```text
-                  Flutter Application
-                         │
-                         │
-                         │ HTTP / JSON
-                         │
-                         ▼
+
                 ┌───────────────────┐
                 │    Dart REST API  │
                 │                   │
@@ -84,7 +80,6 @@ The application follows this architecture:
                 │        │          │
                 │      Models       │
                 └─────────┬─────────┘
-                          │
                           │ SQL
                           ▼
                 ┌───────────────────┐
@@ -97,9 +92,7 @@ The application follows this architecture:
 ```
 
 The client sends an HTTP request to the Dart API.
-
 The Dart API processes the request and communicates with PostgreSQL.
-
 PostgreSQL stores the permanent data.
 
 ---
@@ -107,20 +100,17 @@ PostgreSQL stores the permanent data.
 # Technology Stack
 
 ## Backend
-
 ```text
 Dart
 Shelf
 ```
 
 ## Database
-
 ```text
 PostgreSQL
 ```
 
 ## API Format
-
 ```text
 REST
 JSON
@@ -128,9 +118,7 @@ HTTP
 ```
 
 ## Client
-
 The API can be used by:
-
 ```text
 Flutter
 Android
@@ -147,8 +135,6 @@ Any HTTP client
 ---
 
 # Project Structure
-
-The project uses a simple layered structure:
 
 ```text
 dart_api/
@@ -170,9 +156,14 @@ dart_api/
 │   └── routes/
 │       └── user_routes.dart
 │
-├── test/
+├── docs/
+|   └── openapi.yaml
+|
+|── web/
+|   └── swagger/
+|       └── index.html
 │
-├── pubspec.yaml
+├── pubspec.yaml7
 │
 ├── pubspec.lock
 │
@@ -184,61 +175,37 @@ dart_api/
 # Folder Responsibilities
 
 ## `bin/`
-
 Contains the application entry point.
-
 ```text
 bin/dart_api.dart
 ```
-
 This file:
-
 * Starts the server
 * Connects the database
 * Configures routes
 * Starts the HTTP server
 
----
-
 ## `lib/database/`
-
-Contains database connection logic.
-
 ```text
 lib/database/database.dart
 ```
-
 Responsible for:
-
 * PostgreSQL connection
 * Database configuration
 * Opening the database connection
 * Closing the database connection
 
----
-
 ## `lib/models/`
-
-Contains application models.
-
 ```text
 lib/models/user.dart
 ```
-
 The `User` model represents a user stored in PostgreSQL.
 
----
-
 ## `lib/repositories/`
-
-Contains database operations.
-
 ```text
 lib/repositories/user_repository.dart
 ```
-
 Responsible for:
-
 * SELECT
 * INSERT
 * UPDATE
@@ -246,18 +213,11 @@ Responsible for:
 
 The repository keeps SQL/database logic separate from HTTP routes.
 
----
-
 ## `lib/routes/`
-
-Contains API endpoint logic.
-
 ```text
 lib/routes/user_routes.dart
 ```
-
 Responsible for:
-
 * Reading HTTP requests
 * Validating request data
 * Calling repositories
@@ -269,26 +229,22 @@ Responsible for:
 # Requirements
 
 Install the following software:
-
 * Dart SDK
 * PostgreSQL
 * Git
 * Optional: Postman or Insomnia
 
 Check Dart:
-
 ```bash
 dart --version
 ```
 
 Check PostgreSQL:
-
 ```bash
 psql --version
 ```
 
 Example:
-
 ```text
 Dart SDK
 PostgreSQL 16.15
@@ -299,25 +255,21 @@ PostgreSQL 16.15
 # PostgreSQL Setup
 
 The project uses a PostgreSQL database called:
-
 ```text
 dart_api_db
 ```
 
 Create the database:
-
 ```bash
 createdb dart_api_db
 ```
 
 Connect to it:
-
 ```bash
 psql dart_api_db
 ```
 
 You should see:
-
 ```text
 dart_api_db=#
 ```
@@ -327,7 +279,6 @@ dart_api_db=#
 # Database Schema
 
 Create the `users` table:
-
 ```sql
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
@@ -338,30 +289,23 @@ CREATE TABLE users (
 ```
 
 PostgreSQL should return:
-
 ```text
 CREATE TABLE
 ```
 
 Check the table:
-
 ```sql
 \dt
 ```
 
 Expected:
-
 ```text
  Schema | Name  | Type  | Owner
 --------+-------+-------+-------
  public | users | table | seyha
 ```
 
----
-
-# Users Table
-
-The database contains the following columns:
+## Users Table
 
 | Column       | Type         | Description    |
 | ------------ | ------------ | -------------- |
@@ -370,30 +314,24 @@ The database contains the following columns:
 | `email`      | VARCHAR(255) | Unique email   |
 | `created_at` | TIMESTAMP    | Creation date  |
 
----
-
-# PostgreSQL User
+## PostgreSQL User
 
 The PostgreSQL role used by this project is:
-
 ```text
 seyha
 ```
 
 The database is:
-
 ```text
 dart_api_db
 ```
 
 The table owner is:
-
 ```text
 seyha
 ```
 
 You can check PostgreSQL roles using:
-
 ```sql
 \du
 ```
@@ -403,40 +341,37 @@ You can check PostgreSQL roles using:
 # Dart Project Setup
 
 Create the project:
-
 ```bash
 dart create -t console dart_api
 ```
 
 Enter the project:
-
 ```bash
 cd dart_api
 ```
 
 Install dependencies:
-
 ```bash
 dart pub add shelf
 dart pub add postgres
+dart pub add path
+dart pub add openapi_spec
 ```
 
 Or:
-
 ```bash
 dart pub get
 ```
 
----
-
-# Dependencies
+## Dependencies
 
 The main dependencies are:
-
 ```yaml
 dependencies:
-  shelf: ^1.x.x
-  postgres: ^3.x.x
+  postgres: ^3.5.12
+  shelf: ^1.4.2
+  path: ^1.9.0
+  openapi_spec: ^0.15.0
 ```
 
 The exact versions are managed by `pubspec.yaml` and `pubspec.lock`.
@@ -446,13 +381,11 @@ The exact versions are managed by `pubspec.yaml` and `pubspec.lock`.
 # Database Configuration
 
 Database configuration is located at:
-
 ```text
 lib/database/database.dart
 ```
 
 Example:
-
 ```dart
 Endpoint(
   host: 'localhost',
@@ -464,45 +397,32 @@ Endpoint(
 ```
 
 Configuration:
-
 ```text
-Host:
-localhost
-
-Port:
-5432
-
-Database:
-dart_api_db
-
-Username:
-seyha
+Host:     localhost
+Port:     5432
+Database: dart_api_db
+Username: seyha
 ```
 
 For local development, PostgreSQL can run without a password depending on the local authentication configuration.
 
-For production, do not store database passwords directly in source code.
-
-Use environment variables instead.
+For production, do not store database passwords directly in source code. Use environment variables instead.
 
 ---
 
 # Running the API
 
 Start the server:
-
 ```bash
 dart run
 ```
 
 The server runs on:
-
 ```text
 http://localhost:8080
 ```
 
 Expected output:
-
 ```text
 ======================================
 🚀 Starting Dart REST API
@@ -521,8 +441,6 @@ Expected output:
 
 # REST API Endpoints
 
-The API currently provides:
-
 | Method | Endpoint         | Description      |
 | ------ | ---------------- | ---------------- |
 | GET    | `/`              | API health check |
@@ -532,24 +450,19 @@ The API currently provides:
 | PUT    | `/api/users/:id` | Update user      |
 | DELETE | `/api/users/:id` | Delete user      |
 
----
+## 1. API Health Check
 
-# 1. API Health Check
-
-## Request
-
+### Request
 ```http
 GET /
 ```
 
 Example:
-
 ```bash
 curl http://localhost:8080/
 ```
 
 Response:
-
 ```json
 {
   "success": true,
@@ -557,24 +470,19 @@ Response:
 }
 ```
 
----
+## 2. Get All Users
 
-# 2. Get All Users
-
-## Request
-
+### Request
 ```http
 GET /api/users
 ```
 
 Example:
-
 ```bash
 curl http://localhost:8080/api/users
 ```
 
 Response:
-
 ```json
 {
   "success": true,
@@ -589,24 +497,19 @@ Response:
 }
 ```
 
----
+## 3. Get One User
 
-# 3. Get One User
-
-## Request
-
+### Request
 ```http
 GET /api/users/:id
 ```
 
 Example:
-
 ```bash
 curl http://localhost:8080/api/users/1
 ```
 
 Response:
-
 ```json
 {
   "success": true,
@@ -620,7 +523,6 @@ Response:
 ```
 
 If the user does not exist:
-
 ```json
 {
   "success": false,
@@ -629,29 +531,23 @@ If the user does not exist:
 ```
 
 HTTP status:
-
 ```text
 404 Not Found
 ```
 
----
+## 4. Create User
 
-# 4. Create User
-
-## Request
-
+### Request
 ```http
 POST /api/users
 ```
 
 Content-Type:
-
 ```text
 application/json
 ```
 
 Request body:
-
 ```json
 {
   "name": "Seyha",
@@ -660,7 +556,6 @@ Request body:
 ```
 
 Using cURL:
-
 ```bash
 curl -X POST http://localhost:8080/api/users \
 -H "Content-Type: application/json" \
@@ -668,7 +563,6 @@ curl -X POST http://localhost:8080/api/users \
 ```
 
 Successful response:
-
 ```json
 {
   "success": true,
@@ -683,23 +577,18 @@ Successful response:
 ```
 
 HTTP status:
-
 ```text
 201 Created
 ```
 
----
+## 5. Update User
 
-# 5. Update User
-
-## Request
-
+### Request
 ```http
 PUT /api/users/:id
 ```
 
 Example:
-
 ```bash
 curl -X PUT http://localhost:8080/api/users/1 \
 -H "Content-Type: application/json" \
@@ -707,7 +596,6 @@ curl -X PUT http://localhost:8080/api/users/1 \
 ```
 
 Response:
-
 ```json
 {
   "success": true,
@@ -721,24 +609,19 @@ Response:
 }
 ```
 
----
+## 6. Delete User
 
-# 6. Delete User
-
-## Request
-
+### Request
 ```http
 DELETE /api/users/:id
 ```
 
 Example:
-
 ```bash
 curl -X DELETE http://localhost:8080/api/users/1
 ```
 
 Response:
-
 ```json
 {
   "success": true,
@@ -748,95 +631,98 @@ Response:
 
 ---
 
+# Swagger UI / API Documentation
+
+The API ships with interactive **Swagger UI** documentation, generated from an OpenAPI spec via `openapi_spec` and served as a static page from `web/swagger/`.
+
+## Files
+
+```text
+docs/openapi.yaml       # OpenAPI 3.0 specification
+web/swagger/index.html  # Swagger UI page
+```
+
+## Viewing Swagger UI
+
+With the server running (`dart run`), open the following URL in your browser:
+
+```text
+http://localhost:8080/docs
+```
+
+The raw OpenAPI spec is served separately at:
+
+```text
+http://localhost:8080/docs/openapi.yaml
+```
+
+Both URLs are also printed to the console on startup:
+
+```text
+======================================
+🚀 Starting Dart REST API
+======================================
+✅ PostgreSQL connected
+======================================
+✅ API SERVER RUNNING
+======================================
+🌐 API: http://localhost:8080
+📚 Swagger: http://localhost:8080/docs
+📄 OpenAPI: http://localhost:8080/docs/openapi.yaml
+======================================
+```
+
+Swagger UI lets you:
+
+* Browse all available endpoints
+* View request/response schemas
+* Send test requests directly from the browser
+* Inspect HTTP status codes and example payloads
+
+## Updating the OpenAPI Spec
+
+As you add or change endpoints, keep `docs/openapi.yaml` in sync so Swagger UI stays accurate. After editing it, simply refresh the `/swagger` page in your browser — no rebuild step is required since it's served as a static file.
+
+---
+
 # Checking Database Data
 
-You can directly inspect the PostgreSQL database.
-
 Connect:
-
 ```bash
 psql -U seyha -d dart_api_db
 ```
 
 Then:
-
 ```sql
 SELECT * FROM users;
 ```
 
 Example:
-
 ```text
  id | name  |       email        |         created_at
 ----+-------+--------------------+----------------------------
   1 | Seyha | seyha@example.com  | 2026-08-15 09:30:21
 ```
 
----
+## Useful PostgreSQL Commands
 
-# Useful PostgreSQL Commands
-
-Show databases:
-
-```sql
-\l
-```
-
-Connect to database:
-
-```sql
-\c dart_api_db
-```
-
-Show tables:
-
-```sql
-\dt
-```
-
-Show table structure:
-
-```sql
-\d users
-```
-
-Show all users:
-
-```sql
-SELECT * FROM users;
-```
-
-Show specific columns:
-
-```sql
-SELECT id, name, email FROM users;
-```
-
-Find a specific user:
-
-```sql
-SELECT * FROM users
-WHERE id = 1;
-```
-
-Count users:
-
-```sql
-SELECT COUNT(*) FROM users;
-```
-
-Exit PostgreSQL:
-
-```sql
-\q
-```
+| Command | Description |
+| ------- | ----------- |
+| `\l` | Show databases |
+| `\c dart_api_db` | Connect to database |
+| `\dt` | Show tables |
+| `\d users` | Show table structure |
+| `SELECT * FROM users;` | Show all users |
+| `SELECT id, name, email FROM users;` | Show specific columns |
+| `SELECT * FROM users WHERE id = 1;` | Find a specific user |
+| `SELECT COUNT(*) FROM users;` | Count users |
+| `\q` | Exit PostgreSQL |
 
 ---
 
 # Testing with cURL
 
 ## Create
-
 ```bash
 curl -X POST http://localhost:8080/api/users \
 -H "Content-Type: application/json" \
@@ -844,19 +730,16 @@ curl -X POST http://localhost:8080/api/users \
 ```
 
 ## Read
-
 ```bash
 curl http://localhost:8080/api/users
 ```
 
 ## Read one
-
 ```bash
 curl http://localhost:8080/api/users/1
 ```
 
 ## Update
-
 ```bash
 curl -X PUT http://localhost:8080/api/users/1 \
 -H "Content-Type: application/json" \
@@ -864,7 +747,6 @@ curl -X PUT http://localhost:8080/api/users/1 \
 ```
 
 ## Delete
-
 ```bash
 curl -X DELETE http://localhost:8080/api/users/1
 ```
@@ -876,13 +758,11 @@ curl -X DELETE http://localhost:8080/api/users/1
 This API can be consumed from a Flutter application using Dio.
 
 Install Dio:
-
 ```bash
 flutter pub add dio
 ```
 
 Example:
-
 ```dart
 import 'package:dio/dio.dart';
 
@@ -897,30 +777,15 @@ Future<void> getUsers() async {
 }
 ```
 
-For an Android emulator:
-
-```text
-10.0.2.2
-```
-
-points to the development computer's localhost.
-
-For an iOS simulator:
-
-```text
-localhost
-```
-
-can normally be used.
-
-For a physical device, use your computer's local network IP address.
+* For an **Android emulator**, `10.0.2.2` points to the development computer's localhost.
+* For an **iOS simulator**, `localhost` can normally be used.
+* For a **physical device**, use your computer's local network IP address.
 
 ---
 
 # API Response Format
 
 Successful responses use:
-
 ```json
 {
   "success": true,
@@ -928,8 +793,7 @@ Successful responses use:
 }
 ```
 
-For example:
-
+Example:
 ```json
 {
   "success": true,
@@ -942,7 +806,6 @@ For example:
 ```
 
 Successful operations may also contain a message:
-
 ```json
 {
   "success": true,
@@ -952,7 +815,6 @@ Successful operations may also contain a message:
 ```
 
 Error responses use:
-
 ```json
 {
   "success": false,
@@ -965,10 +827,10 @@ Error responses use:
 # HTTP Status Codes
 
 | Status Code | Meaning               |
-| ----------: | --------------------- |
+| ----------: | ---------------------- |
 |       `200` | Request successful    |
 |       `201` | Resource created      |
-|       `400` | Bad request           |
+|       `400` | Bad request            |
 |       `404` | Resource not found    |
 |       `422` | Validation error      |
 |       `500` | Internal server error |
@@ -977,171 +839,67 @@ Error responses use:
 
 # Application Flow
 
-When Flutter creates a user:
-
+**Creating a user:**
 ```text
 Flutter
-   │
    │ POST /api/users
-   │
-   │ {
-   │   "name": "Seyha",
-   │   "email": "seyha@example.com"
-   │ }
+   │ { "name": "Seyha", "email": "seyha@example.com" }
    ▼
 Dart REST API
-   │
    ▼
 UserRoutes
-   │
    ▼
 UserRepository
-   │
    │ INSERT INTO users
    ▼
-PostgreSQL
-   │
-   ▼
-dart_api_db
-   │
-   ▼
-users table
+PostgreSQL → dart_api_db → users table
 ```
 
-When Flutter requests users:
-
+**Fetching users:**
 ```text
 Flutter
-   │
    │ GET /api/users
    ▼
 Dart REST API
-   │
    ▼
 UserRoutes
-   │
    ▼
 UserRepository
-   │
    │ SELECT * FROM users
    ▼
-PostgreSQL
-   │
-   ▼
-User data
-   │
-   ▼
-JSON Response
-   │
-   ▼
-Flutter
+PostgreSQL → User data → JSON Response → Flutter
 ```
 
----
-
-# Repository Pattern
+## Repository Pattern
 
 The project separates database operations from API routes.
 
-The route handles:
+The **route** handles: HTTP Request, Validation, HTTP Response
+The **repository** handles: SQL, Database Queries, CRUD Operations
 
 ```text
-HTTP Request
-Validation
-HTTP Response
-```
-
-The repository handles:
-
-```text
-SQL
-Database Queries
-CRUD Operations
+UserRoutes → UserRepository → PostgreSQL
 ```
 
 This makes the application easier to maintain as it grows.
 
-Example:
+## CRUD Summary
 
-```text
-UserRoutes
-     │
-     ▼
-UserRepository
-     │
-     ▼
-PostgreSQL
-```
-
----
-
-# CRUD
-
-The project implements complete CRUD functionality.
-
-## Create
-
-```text
-POST /api/users
-```
-
-Uses:
-
-```sql
-INSERT INTO users
-```
-
-## Read
-
-```text
-GET /api/users
-GET /api/users/:id
-```
-
-Uses:
-
-```sql
-SELECT
-```
-
-## Update
-
-```text
-PUT /api/users/:id
-```
-
-Uses:
-
-```sql
-UPDATE users
-```
-
-## Delete
-
-```text
-DELETE /api/users/:id
-```
-
-Uses:
-
-```sql
-DELETE FROM users
-```
+| Operation | Endpoint | SQL |
+| --- | --- | --- |
+| Create | `POST /api/users` | `INSERT INTO users` |
+| Read | `GET /api/users`, `GET /api/users/:id` | `SELECT` |
+| Update | `PUT /api/users/:id` | `UPDATE users` |
+| Delete | `DELETE /api/users/:id` | `DELETE FROM users` |
 
 ---
 
 # Security
 
-The current project is intended for learning and local development.
-
-Before deploying to production, the following should be implemented.
+The current project is intended for learning and local development. Before deploying to production, the following should be implemented:
 
 ## Environment Variables
-
-Do not store database passwords directly in Dart source code.
-
-Use environment variables such as:
-
+Do not store database passwords directly in Dart source code. Use environment variables such as:
 ```text
 DATABASE_HOST
 DATABASE_PORT
@@ -1151,38 +909,23 @@ DATABASE_PASSWORD
 ```
 
 ## Password Hashing
-
-If authentication is added, never store plain-text passwords.
-
-Use secure password hashing such as:
-
+If authentication is added, never store plain-text passwords. Use secure password hashing such as:
 ```text
 Argon2
 bcrypt
 ```
 
 ## JWT Authentication
-
 Protected endpoints can use:
-
 ```text
 Authorization: Bearer <token>
 ```
 
 ## HTTPS
-
-Production APIs should use:
-
-```text
-HTTPS
-```
-
-instead of plain HTTP.
+Production APIs should use HTTPS instead of plain HTTP.
 
 ## Input Validation
-
 Validate:
-
 * Email format
 * String length
 * Required fields
@@ -1191,7 +934,6 @@ Validate:
 * Authorization
 
 ## Rate Limiting
-
 Protect public endpoints from excessive requests.
 
 ---
@@ -1202,7 +944,6 @@ As the project grows, the architecture can become:
 
 ```text
                     Flutter
-                       │
                        │ HTTPS
                        ▼
                 ┌───────────────┐
@@ -1222,7 +963,6 @@ As the project grows, the architecture can become:
                 └───────┬───────┘
                         │
               ┌─────────┴─────────┐
-              │                   │
               ▼                   ▼
         PostgreSQL            Redis
         Database              Cache
@@ -1232,12 +972,9 @@ As the project grows, the architecture can become:
 
 # Future Features
 
-The current project provides basic user CRUD.
-
-Possible future features:
+The current project provides basic user CRUD. Possible future features:
 
 ## Authentication
-
 ```text
 POST /api/register
 POST /api/login
@@ -1246,16 +983,13 @@ POST /api/refresh-token
 ```
 
 ## User Profile
-
 ```text
 GET /api/profile
 PUT /api/profile
 ```
 
 ## Authorization
-
 Roles such as:
-
 ```text
 admin
 user
@@ -1263,38 +997,25 @@ moderator
 ```
 
 ## Pagination
-
-Example:
-
 ```text
 GET /api/users?page=1&limit=20
 ```
 
 ## Search
-
-Example:
-
 ```text
 GET /api/users?search=seyha
 ```
 
 ## Sorting
-
-Example:
-
 ```text
 GET /api/users?sort=name
 ```
 
 ## WebSockets
-
 For real-time features:
-
 ```text
 Dart API
-    │
     └── WebSocket
-          │
           ├── Chat
           ├── Notifications
           ├── Live status
@@ -1302,9 +1023,7 @@ Dart API
 ```
 
 ## Docker
-
 Containerize:
-
 ```text
 Dart API
 PostgreSQL
@@ -1312,9 +1031,7 @@ Redis
 ```
 
 ## API Documentation
-
 Add:
-
 ```text
 OpenAPI
 Swagger
@@ -1365,47 +1082,29 @@ Swagger
 
 # Development Commands
 
-Install dependencies:
-
 ```bash
+# Install dependencies
 dart pub get
-```
 
-Run the server:
-
-```bash
+# Run the server
 dart run
-```
 
-Analyze code:
-
-```bash
+# Analyze code
 dart analyze
-```
 
-Run tests:
-
-```bash
+# Run tests
 dart test
-```
 
-Format code:
-
-```bash
+# Format code
 dart format .
-```
 
-Upgrade packages:
-
-```bash
+# Upgrade packages
 dart pub upgrade
 ```
 
 ---
 
 # Development Workflow
-
-A typical development workflow is:
 
 ```text
 1. Start PostgreSQL
@@ -1430,7 +1129,6 @@ A typical development workflow is:
 # Database Verification
 
 After creating a user through the API:
-
 ```bash
 curl -X POST http://localhost:8080/api/users \
 -H "Content-Type: application/json" \
@@ -1438,29 +1136,18 @@ curl -X POST http://localhost:8080/api/users \
 ```
 
 Open PostgreSQL:
-
 ```bash
 psql -U seyha -d dart_api_db
 ```
 
 Then:
-
 ```sql
 SELECT * FROM users;
 ```
 
 If the user appears in the result, the complete flow is working:
-
 ```text
-Flutter / cURL
-      ↓
-Dart REST API
-      ↓
-User Repository
-      ↓
-PostgreSQL
-      ↓
-users table
+Flutter / cURL → Dart REST API → User Repository → PostgreSQL → users table
 ```
 
 ---
